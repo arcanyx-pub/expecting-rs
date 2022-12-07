@@ -1,0 +1,16 @@
+[package]
+name = "expecting"
+authors = ["Joe Dahlquist <joe@arcanyx.com>"]
+categories = ["development-tools::testing"]
+description = "Rust macros that test conditions without panicking"
+documentation = "https://docs.rs/expecting"
+edition = "2021"
+homepage = "https://github.com/arcanyx-pub/expecting-rs"
+keywords = ["test", "macros", "expect", "assert", "result"]
+license = "MIT"
+readme = "README.md"
+repository = "https://github.com/arcanyx-pub/expecting-rs"
+version = "0.1.0-alpha.0"
+
+[dependencies]
+anyhow = "1.0.66"
