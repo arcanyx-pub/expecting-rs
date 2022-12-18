@@ -4,9 +4,6 @@
 [![Documentation](https://docs.rs/expecting/badge.svg)](https://docs.rs/expecting)
 [![Crates.io](https://img.shields.io/crates/l/expecting)](LICENSE)
 
-**WARNING**: This crate is an alpha release. Test coverage is low, and the API
-may change without warning.
-
 **Expecting** provides macros for testing conditions without panicking. The
 `expect_*` family of macros cause an early return of [`anyhow::Error`] if the
 expected condition is not met.
