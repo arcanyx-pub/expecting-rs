@@ -12,36 +12,23 @@ pub fn msg(file: &str, line: u32, expr: &str, msg: &str) -> anyhow::Error {
 ///
 /// # Examples
 ///
-/// This test passes because the condition is `true`:
-///
 /// ```
 /// # use anyhow::Result;
 /// # use expecting::expect;
-///
 /// fn passing_test() -> Result<()> {
 ///     expect!(1 + 1 == 2);
 ///     Ok(())
 /// }
 /// # assert!(passing_test().is_ok());
-/// ```
-///
-/// Note: We use `assert_eq!` just as an example, but if you are using `expect_*`, you generally
-/// wouldn't use `assert_*`.
-///
-/// This test fails because the condition is `false`:
-///
-/// ```
-/// # use anyhow::{anyhow, Result};
-/// # use expecting::expect;
 ///
 /// fn failing_test() -> Result<()> {
-///     expect!(1 + 1 == 69);
+///     expect!(1 + 1 == 69);  // returns early
 ///     Ok(())  // won't be reached
 /// }
 /// # assert!(failing_test().is_err());
 /// ```
 ///
-/// The above test will return early after calling `expect!`. The `Err` will be wrapped in a
+/// `failing_test()` will return early after calling `expect!`. The `Err` will be wrapped in a
 /// descriptive error message such as:
 ///
 /// > **[my/file.rs:12]** *"expect!(condition)"* Expected true but was false.<br/>
@@ -60,43 +47,31 @@ macro_rules! expect {
     }?};
 }
 
-/// Expects that the given [`Result`] is Ok and returns its contents; otherwise returns early.
+/// Expects that the given [`Result`] is `Ok` and returns its unwrapped contents; otherwise returns
+/// early.
 ///
 /// # Examples
 ///
-/// This test passes because `result` is `Ok`:
-///
 /// ```
-/// # use anyhow::Result;
-/// # use expecting::expect_ok;
-///
+/// # use anyhow::{anyhow, Result};
+/// # use expecting::{expect_eq, expect_ok};
 /// fn passing_test() -> Result<()> {
-///     let result: Result<i64> = Ok(69);
+///     let result: Result<i32> = Ok(69);
 ///     let contents = expect_ok!(result);
-///     assert_eq!(contents, 69);
+///     expect_eq!(contents, 69);
 ///     Ok(())
 /// }
 /// # assert!(passing_test().is_ok());
-/// ```
-///
-/// Note: We use `assert_eq!` just as an example, but if you are using `expect_*`, you generally
-/// wouldn't use `assert_*`.
-///
-/// This test fails because `result` is `Err`:
-///
-/// ```
-/// # use anyhow::{anyhow, Result};
-/// # use expecting::expect_ok;
 ///
 /// fn failing_test() -> Result<()> {
-///     let result: Result<i64> = Err(anyhow!("ruh roh!"));
-///     let contents = expect_ok!(result);  // returns early with Err
+///     let result: Result<i32> = Err(anyhow!("ruh roh!"));
+///     let contents = expect_ok!(result);  // returns early
 ///     Ok(())  // won't be reached
 /// }
 /// # assert!(failing_test().is_err());
 /// ```
 ///
-/// The above test will return early after calling `expect_ok!`. The `Err` will be wrapped in a
+/// `failing_test()` will return early after calling `expect_ok!`. The `Err` will be wrapped in a
 /// descriptive error message such as:
 ///
 /// > **[my/file.rs:12]** *"expect_ok!(result)"* Expected Ok, got Err: "ruh roh!"<br/>
@@ -116,27 +91,35 @@ macro_rules! expect_ok {
     };
 }
 
-/// Expects that the given [`Result`] is Err and returns its contents of that Err; otherwise returns
+/// Expects that the given [`Result`] is `Err` and returns the unwrapped error; otherwise returns
 /// early.
-///
-/// See [`expect_ok`] for details and more examples; `expect_err` functions similarly.
 ///
 /// # Examples
 ///
-/// This test passes because `result` is `Err`:
-///
 /// ```
 /// # use anyhow::{anyhow, Result};
-/// # use expecting::expect_err;
-///
+/// # use expecting::{expect, expect_err};
 /// fn passing_test() -> Result<()> {
-///     let result: Result<i64> = Err(anyhow!("ruh roh!"));
+///     let result: Result<i32> = Err(anyhow!("ruh roh!"));
 ///     let err = expect_err!(result);
-///     assert!(err.to_string().contains("ruh roh!"));
+///     expect!(err.to_string().contains("ruh roh!"));
 ///     Ok(())
 /// }
 /// # assert!(passing_test().is_ok());
+///
+/// fn failing_test() -> Result<()> {
+///     let err = expect_err!(Ok(()));  // returns early
+///     Ok(())  // won't be reached
+/// }
+/// # assert!(failing_test().is_err());
 /// ```
+///
+/// `failing_test()` will return early after calling `expect_err!`. The `Err` will be wrapped in a
+/// descriptive error message such as:
+///
+/// > **[my/file.rs:12]** *"expect_err!(result)"* Expected Err, got Ok: [ contents ]<br/>
+/// > [ ... wrapped Err details ...]
+///
 #[macro_export]
 macro_rules! expect_err {
     ( $result:expr ) => {
@@ -151,40 +134,31 @@ macro_rules! expect_err {
     };
 }
 
-/// Expects that the given [`Option`] is `Some(t)` and returns its contents `t`; otherwise returns
-/// early.
+/// Expects that the given [`Option`] is `Some` and returns its unwrapped contents; otherwise
+/// returns early.
 ///
 /// # Examples
 ///
 /// ```
 /// # use anyhow::Result;
-/// # use expecting::expect_some;
-///
+/// # use expecting::{expect_eq, expect_some};
 /// fn passing_test() -> Result<()> {
 ///     let option = Some(69);
 ///     let contents = expect_some!(option);
-///     assert_eq!(contents, 69);
+///     expect_eq!(contents, 69);
 ///     Ok(())
 /// }
 /// # assert!(passing_test().is_ok());
-/// ```
-///
-/// Note: We use `assert_eq!` just as an example, but if you are using `expect_*`, you generally
-/// wouldn't use `assert_*`.
-///
-/// ```
-/// # use anyhow::{anyhow, Result};
-/// # use expecting::expect_some;
 ///
 /// fn failing_test() -> Result<()> {
-///     let option = None::<i64>;
+///     let option = None::<()>;
 ///     let contents = expect_some!(option);  // returns early with Err
 ///     Ok(())  // won't be reached
 /// }
 /// # assert!(failing_test().is_err());
 /// ```
 ///
-/// The above test will return early after calling `expect_some!`. The `Err` will be wrapped in a
+/// `failing_test()` will return early after calling `expect_some!`. The `Err` will be wrapped in a
 /// descriptive error message such as:
 ///
 /// > **[my/file.rs:12]** *"expect_some!(option)"* Expected Some, got None"<br/>
@@ -206,20 +180,30 @@ macro_rules! expect_some {
 
 /// Expects that the given [`Option`] is `None`; otherwise returns early.
 ///
-/// /// See [`expect_some`] for details and more examples; `expect_none` functions similarly.
-///
 /// # Examples
 ///
 /// ```
 /// # use anyhow::Result;
 /// # use expecting::expect_none;
-///
 /// fn passing_test() -> Result<()> {
-///     expect_none!(None::<i32>);
+///     expect_none!(None::<()>);
 ///     Ok(())
 /// }
 /// # assert!(passing_test().is_ok());
+///
+/// fn failing_test() -> Result<()>{
+///     expect_none!(Some(()));  // returns early
+///     Ok(())  // won't be reached
+/// }
+/// # assert!(failing_test().is_err());
 /// ```
+///
+/// `failing_test()` will return early after calling `expect_none!`. The `Err` will be wrapped in a
+/// descriptive error message such as:
+///
+/// > **[my/file.rs:12]** *"expect_none!(option)"* Expected None, got Some: [ contents ]"<br/>
+/// > [ ... wrapped Err details ...]
+///
 #[macro_export]
 macro_rules! expect_none {
     ( $option:expr ) => {
