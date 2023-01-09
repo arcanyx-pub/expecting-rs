@@ -318,6 +318,56 @@ macro_rules! expect_empty {
     }?};
 }
 
+/// Expects that the given container (e.g., [`Vec`]) contains the element or given string contains
+/// the substring; otherwise returns early.
+///
+/// # Examples
+///
+/// ```
+/// # use anyhow::Result;
+/// # use expecting::expect_contains;
+///
+/// fn passing_test() -> Result<()> {
+///     let v: Vec<i32> = vec![42, 1337];
+///     expect_contains!(v, 42);
+///     Ok(())
+/// }
+/// # assert!(passing_test().is_ok());
+///
+/// fn passing_test_for_string() -> Result<()> {
+///     let superstring = "angelheaded hipsters";
+///     expect_contains!(superstring, "hip");
+///     Ok(())
+/// }
+/// # assert!(passing_test_for_string().is_ok());
+///
+/// fn failing_test() -> Result<()> {
+///     let v: Vec<i32> = vec![42, 1337];
+///     expect_contains!(v, 13);  // returns early
+///     Ok(())  // won't be reached
+/// }
+/// # assert!(failing_test().is_err());
+/// ```
+#[macro_export]
+macro_rules! expect_contains {
+    ( $container:expr, $element_or_substr:expr ) => {{
+        if $container.contains(&$element_or_substr) {
+            Ok(())
+        } else {
+            let expr_str = format!(
+                "expect_contains({}, {})",
+                stringify!($container),
+                stringify!($element_or_substr)
+            );
+            let msg = format!(
+                "Expected to contain {:?}, but did not:\n{:?}",
+                $element_or_substr, $container,
+            );
+            Err($crate::msg(file!(), line!(), &expr_str, &msg))
+        }
+    }?};
+}
+
 #[cfg(test)]
 #[allow(non_snake_case)]
 mod tests {
@@ -478,5 +528,59 @@ mod tests {
             Ok(())
         };
         assert!(test().is_err());
+    }
+
+    #[test]
+    fn expect_contains__vec_of_int_success__no_early_return() {
+        let test = || -> Result<()> {
+            let v: Vec<i64> = vec![42, 1337];
+            expect_contains!(v, 42);
+            Ok(())
+        };
+        assert!(test().is_ok());
+    }
+
+    #[test]
+    fn expect_contains__vec_of_int_failure__causes_early_return() {
+        let test = || -> Result<()> {
+            let v: Vec<i64> = vec![42, 1337];
+            expect_contains!(v, 69);
+            Ok(())
+        };
+        assert!(test().is_err());
+    }
+
+    #[test]
+    fn expect_contains__string_success__no_early_return() {
+        let test = || -> Result<()> {
+            let superstring = "angelheaded hipsters burning for the ancient heavenly connection";
+            expect_contains!(superstring, "hipsters");
+            Ok(())
+        };
+        assert!(test().is_ok());
+    }
+
+    #[test]
+    fn expect_contains__string_failure__causes_early_return() {
+        let test = || -> Result<()> {
+            let superstring = "angelheaded hipsters burning for the ancient heavenly connection";
+            expect_contains!(superstring, "yuppies");
+            Ok(())
+        };
+        assert!(test().is_err());
+    }
+
+    #[test]
+    fn expect_contains__string_failure__returns_correct_err_message() {
+        let test = || -> Result<()> {
+            let superstring = "angelheaded hipsters burning";
+            expect_contains!(superstring, "yuppies");
+            Ok(())
+        };
+        let result = test();
+        assert!(result.is_err());
+        assert!(result.unwrap_err().to_string().contains(
+            "Expected to contain \"yuppies\", but did not:\n\"angelheaded hipsters burning\""
+        ));
     }
 }
