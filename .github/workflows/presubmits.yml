@@ -1,0 +1,25 @@
+name: Presubmits
+
+on:
+  pull_request:
+    branches: [ $default-branch ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  presubmit:
+
+    runs-on: ubuntu-latest
+    container: "rust:latest"
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Build
+        run: cargo build --verbose --release
+      - name: Run tests
+        run: cargo test --no-run --verbose --release
+      - name: Check format
+        run: cargo test --no-run --verbose --release
+      - name: Clippy
+        run: cargo clippy --all-targets -- -D warnings
