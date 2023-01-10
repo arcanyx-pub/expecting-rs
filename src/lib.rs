@@ -368,6 +368,56 @@ macro_rules! expect_contains {
     }?};
 }
 
+/// Expects that `a` is `Some` and its contents are equal to `b`.
+///
+/// # Examples
+///
+/// ```
+/// # use anyhow::Result;
+/// # use expecting::expect_some_eq;
+///
+/// fn passing_test() -> Result<()> {
+///     expect_some_eq!(Some(1), 1);
+///     Ok(())
+/// }
+/// # assert!(passing_test().is_ok());
+///
+/// fn failing_test1() -> Result<()> {
+///     // wrong contents, 1 != 2
+///     expect_some_eq!(Some(1), 2);  // returns early
+///     Ok(())  // won't be reached
+/// }
+/// # assert!(failing_test1().is_err());
+///
+/// fn failing_test2() -> Result<()> {
+///     // first arg is None
+///     expect_some_eq!(None::<i32>, 2);  // returns early
+///     Ok(())  // won't be reached
+/// }
+/// # assert!(failing_test2().is_err());
+/// ```
+#[macro_export]
+macro_rules! expect_some_eq {
+    ( $some_a:expr, $b:expr ) => {{
+        let msg: String;
+        if let Some(a) = $some_a {
+            if a == $b {
+                return Ok(());
+            }
+            msg = format!("{:?} != {:?}, expected them to be equal.", a, $b);
+        } else {
+            msg = format!("Expected {} to be Some, was None.", stringify!($some_a));
+        }
+
+        let expr_str = format!(
+            "expect_some_eq({}, {})",
+            stringify!($some_a),
+            stringify!($b)
+        );
+        Err($crate::msg(file!(), line!(), &expr_str, &msg))
+    }?};
+}
+
 #[cfg(test)]
 #[allow(non_snake_case)]
 mod tests {
@@ -582,5 +632,42 @@ mod tests {
         assert!(result.unwrap_err().to_string().contains(
             "Expected to contain \"yuppies\", but did not:\n\"angelheaded hipsters burning\""
         ));
+    }
+
+    #[test]
+    fn expect_some_eq__int_success__no_early_return() {
+        let test = || -> Result<()> {
+            expect_some_eq!(Some(1), 1);
+            Ok(())
+        };
+        assert!(test().is_ok());
+    }
+
+    #[test]
+    fn expect_some_eq__int_wrong_contents__causes_early_return() {
+        let test = || -> Result<()> {
+            expect_some_eq!(Some(1), 2); // returns early with Err
+            Ok(()) // won't be reached
+        };
+        assert!(test().is_err());
+    }
+
+    #[test]
+    fn expect_some_eq__int_none__causes_early_return() {
+        let test = || -> Result<()> {
+            expect_some_eq!(None::<i32>, 2); // returns early with Err
+            Ok(()) // won't be reached
+        };
+        assert!(test().is_err());
+    }
+
+    #[test]
+    fn expect_some_eq__string_success__no_early_return() {
+        let test = || -> Result<()> {
+            let contents = "george";
+            expect_some_eq!(Some(contents.to_string()), contents);
+            Ok(())
+        };
+        assert!(test().is_ok());
     }
 }
