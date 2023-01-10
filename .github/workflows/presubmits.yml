@@ -2,7 +2,7 @@ name: Presubmits
 
 on:
   pull_request:
-    branches: [ $default-branch ]
+    branches: [ main ]
 
 env:
   CARGO_TERM_COLOR: always
