@@ -22,4 +22,4 @@ jobs:
       - name: Check format
         run: cargo test --no-run --verbose --release
       - name: Clippy
-        run: cargo clippy --all-targets -- -D warnings
+        run: rustup component add clippy && cargo clippy --all-targets -- -D warnings
