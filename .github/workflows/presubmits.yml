@@ -18,8 +18,10 @@ jobs:
       - name: Build
         run: cargo build --verbose --release
       - name: Run tests
-        run: cargo test --no-run --verbose --release
+        run: cargo test --verbose --release
       - name: Check format
-        run: cargo test --no-run --verbose --release
+        run: cargo fmt --check --verbose
       - name: Clippy
-        run: rustup component add clippy && cargo clippy --all-targets -- -D warnings
+        run: |
+          rustup component add clippy
+          cargo clippy --all-targets -- -D warnings
