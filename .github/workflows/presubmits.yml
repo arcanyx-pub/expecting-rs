@@ -20,7 +20,9 @@ jobs:
       - name: Run tests
         run: cargo test --verbose --release
       - name: Check format
-        run: cargo fmt --check --verbose
+        run: |
+          rustup component add rustfmt
+          cargo fmt --check --verbose
       - name: Clippy
         run: |
           rustup component add clippy
