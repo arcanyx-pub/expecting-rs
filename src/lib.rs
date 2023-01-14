@@ -241,11 +241,13 @@ macro_rules! expect_none {
 #[macro_export]
 macro_rules! expect_eq {
     ( $a:expr, $b:expr ) => {{
-        if $a == $b {
+        let a = $a;
+        let b = $b;
+        if a == b {
             Ok(())
         } else {
             let expr_str = format!("expect_eq({}, {})", stringify!($a), stringify!($b));
-            let msg = format!("{:?} != {:?}, expected them to be equal.", $a, $b);
+            let msg = format!("{:?} != {:?}, expected them to be equal.", a, b);
             Err($crate::msg(file!(), line!(), &expr_str, &msg))
         }
     }?};
@@ -274,11 +276,13 @@ macro_rules! expect_eq {
 #[macro_export]
 macro_rules! expect_ne {
     ( $a:expr, $b:expr ) => {{
-        if $a != $b {
+        let a = $a;
+        let b = $b;
+        if a != b {
             Ok(())
         } else {
             let expr_str = format!("expect_ne({}, {})", stringify!($a), stringify!($b));
-            let msg = format!("{:?} == {:?}, expected them *not* to be equal.", $a, $b);
+            let msg = format!("{:?} == {:?}, expected them *not* to be equal.", a, b);
             Err($crate::msg(file!(), line!(), &expr_str, &msg))
         }
     }?};
@@ -308,11 +312,12 @@ macro_rules! expect_ne {
 #[macro_export]
 macro_rules! expect_empty {
     ( $a:expr ) => {{
-        if $a.is_empty() {
+        let a = $a;
+        if a.is_empty() {
             Ok(())
         } else {
             let expr_str = format!("expect_empty({})", stringify!($a));
-            let msg = format!("Expected empty, but contained elements:\n{:?}", $a);
+            let msg = format!("Expected empty, but contained elements:\n{:?}", a);
             Err($crate::msg(file!(), line!(), &expr_str, &msg))
         }
     }?};
@@ -351,7 +356,9 @@ macro_rules! expect_empty {
 #[macro_export]
 macro_rules! expect_contains {
     ( $container:expr, $element_or_substr:expr ) => {{
-        if $container.contains(&$element_or_substr) {
+        let container = $container;
+        let element_or_substr = $element_or_substr;
+        if container.contains(&element_or_substr) {
             Ok(())
         } else {
             let expr_str = format!(
@@ -361,7 +368,7 @@ macro_rules! expect_contains {
             );
             let msg = format!(
                 "Expected to contain {:?}, but did not:\n{:?}",
-                $element_or_substr, $container,
+                element_or_substr, container,
             );
             Err($crate::msg(file!(), line!(), &expr_str, &msg))
         }
@@ -399,12 +406,13 @@ macro_rules! expect_contains {
 #[macro_export]
 macro_rules! expect_some_eq {
     ( $some_a:expr, $b:expr ) => {{
+        let b = $b;
         let msg: String;
         if let Some(a) = $some_a {
-            if a == $b {
+            if a == b {
                 return Ok(());
             }
-            msg = format!("{:?} != {:?}, expected them to be equal.", a, $b);
+            msg = format!("{:?} != {:?}, expected them to be equal.", a, b);
         } else {
             msg = format!("Expected {} to be Some, was None.", stringify!($some_a));
         }
