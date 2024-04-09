@@ -407,22 +407,27 @@ macro_rules! expect_contains {
 macro_rules! expect_some_eq {
     ( $some_a:expr, $b:expr ) => {{
         let b = $b;
-        let msg: String;
-        if let Some(a) = $some_a {
-            if a == b {
-                return Ok(());
+        let msg: String = match $some_a {
+            Some(a) => {
+                if a == b {
+                    "".to_string()
+                } else {
+                    format!("{:?} != {:?}, expected them to be equal.", a, b)
+                }
             }
-            msg = format!("{:?} != {:?}, expected them to be equal.", a, b);
-        } else {
-            msg = format!("Expected {} to be Some, was None.", stringify!($some_a));
-        }
+            None => format!("Expected {} to be Some, was None.", stringify!($some_a)),
+        };
 
-        let expr_str = format!(
-            "expect_some_eq({}, {})",
-            stringify!($some_a),
-            stringify!($b)
-        );
-        Err($crate::msg(file!(), line!(), &expr_str, &msg))
+        if msg.is_empty() {
+            Ok(())
+        } else {
+            let expr_str = format!(
+                "expect_some_eq({}, {})",
+                stringify!($some_a),
+                stringify!($b)
+            );
+            Err($crate::msg(file!(), line!(), &expr_str, &msg))
+        }
     }?};
 }
 
@@ -435,9 +440,9 @@ mod tests {
     fn expect__success__no_early_return() {
         let test = || -> Result<()> {
             expect!(1 + 1 == 2);
-            Ok(())
+            Err(anyhow!("no early return"))
         };
-        assert!(test().is_ok());
+        assert!(test().is_err_and(|e| e.to_string().contains("no early return")));
     }
 
     #[test]
@@ -646,9 +651,9 @@ mod tests {
     fn expect_some_eq__int_success__no_early_return() {
         let test = || -> Result<()> {
             expect_some_eq!(Some(1), 1);
-            Ok(())
+            Err(anyhow!("no early return"))
         };
-        assert!(test().is_ok());
+        assert!(test().is_err_and(|e| e.to_string().contains("no early return")));
     }
 
     #[test]
@@ -674,8 +679,8 @@ mod tests {
         let test = || -> Result<()> {
             let contents = "george";
             expect_some_eq!(Some(contents.to_string()), contents);
-            Ok(())
+            Err(anyhow!("no early return"))
         };
-        assert!(test().is_ok());
+        assert!(test().is_err_and(|e| e.to_string().contains("no early return")));
     }
 }
