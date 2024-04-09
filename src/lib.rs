@@ -523,9 +523,9 @@ mod tests {
     fn expect_none__success__no_early_return() {
         let test = || -> Result<()> {
             expect_none!(None::<i64>);
-            Ok(())
+            Err(anyhow!("no early return"))
         };
-        assert!(test().is_ok());
+        assert!(test().is_err_and(|e| e.to_string().contains("no early return")));
     }
 
     #[test]
@@ -541,9 +541,9 @@ mod tests {
     fn expect_eq__success__no_early_return() {
         let test = || -> Result<()> {
             expect_eq!(1, 1);
-            Ok(())
+            Err(anyhow!("no early return"))
         };
-        assert!(test().is_ok());
+        assert!(test().is_err_and(|e| e.to_string().contains("no early return")));
     }
 
     #[test]
@@ -559,9 +559,9 @@ mod tests {
     fn expect_ne__success__no_early_return() {
         let test = || -> Result<()> {
             expect_ne!(1, 2);
-            Ok(())
+            Err(anyhow!("no early return"))
         };
-        assert!(test().is_ok());
+        assert!(test().is_err_and(|e| e.to_string().contains("no early return")));
     }
 
     #[test]
@@ -578,9 +578,9 @@ mod tests {
         let test = || -> Result<()> {
             let empty: Vec<i64> = vec![];
             expect_empty!(empty);
-            Ok(())
+            Err(anyhow!("no early return"))
         };
-        assert!(test().is_ok());
+        assert!(test().is_err_and(|e| e.to_string().contains("no early return")));
     }
 
     #[test]
@@ -598,9 +598,9 @@ mod tests {
         let test = || -> Result<()> {
             let v: Vec<i64> = vec![42, 1337];
             expect_contains!(v, 42);
-            Ok(())
+            Err(anyhow!("no early return"))
         };
-        assert!(test().is_ok());
+        assert!(test().is_err_and(|e| e.to_string().contains("no early return")));
     }
 
     #[test]
@@ -618,9 +618,9 @@ mod tests {
         let test = || -> Result<()> {
             let superstring = "angelheaded hipsters burning for the ancient heavenly connection";
             expect_contains!(superstring, "hipsters");
-            Ok(())
+            Err(anyhow!("no early return"))
         };
-        assert!(test().is_ok());
+        assert!(test().is_err_and(|e| e.to_string().contains("no early return")));
     }
 
     #[test]
