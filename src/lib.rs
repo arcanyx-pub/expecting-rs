@@ -323,6 +323,42 @@ macro_rules! expect_empty {
     }?};
 }
 
+/// Expects that the given container (e.g., [`Vec`]) contains at least one element or given string
+/// has non-zero length; otherwise returns early.
+///
+/// # Examples
+///
+/// ```
+/// # use anyhow::Result;
+/// # use expecting::expect_not_empty;
+///
+/// fn passing_test() -> Result<()> {
+///     expect_not_empty!(vec![1]);
+///     Ok(())
+/// }
+/// # assert!(passing_test().is_ok());
+///
+/// fn failing_test() -> Result<()> {
+///     let empty: Vec<i32> = vec![];
+///     expect_not_empty!(empty);  // returns early
+///     Ok(())  // won't be reached
+/// }
+/// # assert!(failing_test().is_err());
+/// ```
+#[macro_export]
+macro_rules! expect_not_empty {
+    ( $a:expr ) => {{
+        let a = $a;
+        if !a.is_empty() {
+            Ok(())
+        } else {
+            let expr_str = format!("expect_not_empty({})", stringify!($a));
+            let msg = "Expected non-empty, but was empty.";
+            Err($crate::msg(file!(), line!(), &expr_str, &msg))
+        }
+    }?};
+}
+
 /// Expects that the given container (e.g., [`Vec`]) contains the element or given string contains
 /// the substring; otherwise returns early.
 ///
@@ -588,6 +624,44 @@ mod tests {
         let test = || -> Result<()> {
             let not_empty: Vec<i64> = vec![1];
             expect_empty!(not_empty); // should return early
+            Ok(())
+        };
+        assert!(test().is_err());
+    }
+
+    #[test]
+    fn expect_not_empty__success__no_early_return() {
+        let test = || -> Result<()> {
+            let not_empty: Vec<i64> = vec![1];
+            expect_not_empty!(not_empty);
+            Err(anyhow!("no early return"))
+        };
+        assert!(test().is_err_and(|e| e.to_string().contains("no early return")));
+    }
+
+    #[test]
+    fn expect_not_empty__failure__causes_early_return() {
+        let test = || -> Result<()> {
+            let empty: Vec<i64> = vec![];
+            expect_not_empty!(empty); // should return early
+            Ok(())
+        };
+        assert!(test().is_err());
+    }
+
+    #[test]
+    fn expect_not_empty__string__success__no_early_return() {
+        let test = || -> Result<()> {
+            expect_not_empty!("asdf");
+            Err(anyhow!("no early return"))
+        };
+        assert!(test().is_err_and(|e| e.to_string().contains("no early return")));
+    }
+
+    #[test]
+    fn expect_not_empty__string__failure__causes_early_return() {
+        let test = || -> Result<()> {
+            expect_not_empty!(""); // should return early
             Ok(())
         };
         assert!(test().is_err());
